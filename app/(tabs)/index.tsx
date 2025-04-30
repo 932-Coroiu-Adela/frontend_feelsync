@@ -1,74 +1,127 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, View, Text, ImageBackground, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Toast from 'react-native-toast-message';
+import { BlurView } from 'expo-blur';
+import { Link, useNavigation } from 'expo-router';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
-export default function HomeScreen() {
+export default function IndexScreen() {
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ImageBackground source={require('@/assets/images/background3.jpg')} style={styles.background}>
+      <BlurView intensity={160} style={styles.blur_overlay}/>
+      
+      <View style={styles.container}>
+        {/* this is the top rounded part */}
+        <Image source={require('@/assets/images/starting_page_icon2.jpg')} style={styles.icon_container} />
+
+        {/* title, introduction to app */}
+        <Text style={styles.title}>FeelSync</Text>
+        <Text style={styles.introduction}>Can't seem to keep track of your emotions?</Text>
+        <Text style={styles.introduction}>FeelSync is here to help you!</Text>
+
+        {/* login and signup buttons */}
+        <LinearGradient
+          colors={['#98837e', '#3d190f']}
+          style={styles.login_button}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Link href='/login' asChild>
+            <TouchableOpacity style={styles.button_wrapper} onPress={() => {}}>
+              <Text style={styles.button_text_login}>LOGIN</Text>
+            </TouchableOpacity>
+          </Link>
+        </LinearGradient>
+        
+        <Link href='/signup' asChild>
+          <TouchableOpacity style={styles.signup_button} onPress={() => {}}>
+            <Text style={styles.button_text_signup}>SIGN UP</Text>
+          </TouchableOpacity>
+        </Link>
+
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  background: {
+    flex: 1,
+    resizeMode: 'cover',  
+    justifyContent: 'center',
+  },
+
+  blur_overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  icon_container: {
+    width: '100%',
+    height: 300,
+    overflow: 'hidden',
+    borderBottomLeftRadius: 190,
+    borderBottomRightRadius: 190,
+    marginBottom: 30,
+    borderWidth: 1,
+    borderColor: '#a78a82',
+  },
+
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  title: {
+    fontSize: 40,
+    color: '#3d190f',
+    textAlign: 'center',
+    fontFamily: 'SergioTrendy',
+    marginBottom: 80,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  introduction: {
+    fontSize: 15,
+    color: 'black',
+    textAlign: 'center',
+    fontFamily: 'Poppins',
+    marginBottom: 5,
+  },
+
+  login_button: {
+    borderRadius: 20,
+    width: 250,
+    padding: 10,
+    marginTop: 100,
+    borderWidth: 1,
+    borderColor: '#3d190f',
+  },
+
+  button_wrapper: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 0,
+  },
+
+  signup_button: {
+    backgroundColor: '#f5f5f593',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#3d190f',
+    borderRadius: 20,
+    width: 250,
+    marginTop: 20,
+  },
+
+  button_text_login: {
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: 'SergioTrendy',
+  },
+
+  button_text_signup: {
+    color: '#3d190f',
+    textAlign: 'center',
+    fontFamily: 'SergioTrendy',
   },
 });

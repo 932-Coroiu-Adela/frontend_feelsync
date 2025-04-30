@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Stack, Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 
@@ -7,39 +7,25 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Toast from 'react-native-toast-message';
+import { ChatScreen } from '@/components/ChatScreen';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  //const colorScheme = useColorScheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <Stack>
+      <Stack.Screen name='index' options={{ headerShown: false }}/>
+      <Stack.Screen name='login' options={{ headerShown: false }}/>
+      <Stack.Screen name='signup' options={{ headerShown: false }}/>
+      <Stack.Screen name='home' options={{ headerShown: false }}/>
+      <Stack.Screen name='events' options={{ headerShown: false }}/>
+      <Stack.Screen name='friends' options={{ headerShown: false }}/>
+      <Stack.Screen name='chatbot' options={{ headerShown: false }}/>
+      <Stack.Screen name='profile' options={{ headerShown: false }}/>
+      <Stack.Screen name='add_event' options={{ headerShown: false }}/>
+      <Stack.Screen name='chat' options={{ headerShown: false }}/>
+      <Toast/>
+    </Stack>
   );
 }
