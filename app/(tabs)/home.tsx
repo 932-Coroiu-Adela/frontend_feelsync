@@ -94,7 +94,6 @@ export default function HomeScreen() {
     const handleUpdateField = async (field: string, value: string | number) => {
         const updatedLog = {...log, [field]: value};
         setLog(updatedLog);
-        sendLogToServer(updatedLog);
     }
 
     const sendLogToServer = async (logData: typeof log) => {
@@ -176,8 +175,6 @@ export default function HomeScreen() {
         return iconMap[mood] || null;
     };
       
-
-
     return (
         <ImageBackground source={require('@/assets/images/background2.jpg')} style={styles.background}>
             <BlurView intensity={130} style={styles.blur_overlay}>
@@ -324,6 +321,7 @@ export default function HomeScreen() {
                             placeholder="Add a task..."
                             value={newTodo}
                             onChangeText={setNewTodo}
+                            onSubmitEditing={addTodoItem}
                             />
                             <TouchableOpacity onPress={addTodoItem}>
                             <Ionicons name="add-circle" size={32} color="#2b0e42" />
@@ -339,6 +337,7 @@ export default function HomeScreen() {
                             style={styles.inputCardNote}
                             value={log.positive_note}
                             onChangeText={(text) => handleUpdateField('positive_note', text)}
+                            onBlur={() => sendLogToServer(log)}
                             multiline
                         />
                     </View>
@@ -350,305 +349,305 @@ export default function HomeScreen() {
     )
 }
 
-    const styles = StyleSheet.create({
-        background: {
-            flex: 1, 
-            resizeMode: 'cover',  
-            justifyContent: 'center'
-        },
+const styles = StyleSheet.create({
+    background: {
+        flex: 1, 
+        resizeMode: 'cover',  
+        justifyContent: 'center'
+    },
 
-        blur_overlay: {
-            ...StyleSheet.absoluteFillObject,
-        },
+    blur_overlay: {
+        ...StyleSheet.absoluteFillObject,
+    },
 
-        container: {
-            flex: 1,
-            padding: 20,
-            marginBottom: 55,
-        },
-
-        title: {
-            marginTop: 35,
-            fontSize: 40,
-            fontFamily: 'SergioTrendy',
-            alignSelf: 'center',
-            color: '#2b0e42',
-        },
-
-        content: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-
-        input: {
-            borderWidth: 1,
-            borderColor: '#aaa',
-            padding: 8,
-            marginBottom: 12,
-            borderRadius: 6
-        },
-
-        label: {
-            fontFamily: 'SergioTrendy',
-            fontSize: 20,
-            marginBottom: 4
-        },
-
-        waterIntakeCard: {
-            marginVertical: 12,
-            padding: 16,
-            borderWidth: 2,
-            borderColor: '#7caac8',
-            borderRadius: 50,
-            backgroundColor: 'rgb(214, 238, 251)', 
-            alignItems: 'center',
-        },
-
-        waterContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginVertical: 10,
-        },
-        
-        waterButton: {
-            backgroundColor: '#6793c5',
-            borderRadius: 30,
-            padding: 12,
-            width: 60,
-            height: 60,
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignContent: 'center',
-            marginHorizontal: 15,
-        },
-        
-        waterButtonText: {
-            color: 'white',
-            fontSize: 25,
-            alignContent: 'center',
-            fontFamily: 'Poppins',
-        },
-        
-        waterValue: {
-            fontSize: 18,
-            fontFamily: 'Poppins',
-            color: 'black',
-        },
-
-        timeContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-        },
-          
-        timeSquareWakeup: {
-            flex: 1,
-            aspectRatio: 1, 
-            marginHorizontal: 4,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#fade70',
-            borderRadius: 35,
-            borderWidth: 2,
-            borderColor: '#f1b32d',
-            
-        },
-
-        timeSquareSleep: {
-            flex: 1,
-            aspectRatio: 1, 
-            marginHorizontal: 4,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#89a0ec',
-            borderRadius: 35,
-            borderWidth: 2,
-            borderColor: '#4462c6',
-        },
-          
-        timeTextWakeup: {
-            paddingTop: 10,
-            fontSize: 18,
-            color: 'black',
-            fontFamily: 'PoppinsMedium',
-        },
-
-        timeTextSleep: {
-            paddingTop: 10,
-            fontSize: 18,
-            color: '#fff',
-            fontFamily: 'PoppinsMedium',
-        },
-          
-        timeLabelWakeup: {
-            fontSize: 18,
-            color: 'black',
-            fontFamily: 'SergioTrendy',
-            marginBottom: 4,
-            textAlign: 'center',
-            paddingBottom: 10,
-        },
-
-        timeLabelSleep: {
-            fontSize: 18,
-            color: '#fff',
-            fontFamily: 'SergioTrendy',
-            marginBottom: 4,
-            textAlign: 'center',
-            paddingBottom: 10,
-        },
-          
-        moodIcon: {
-            width: 40,
-            height: 40,
-            resizeMode: 'contain',
-            
-        },
-          
-        selectMoodText: {
-            fontFamily: 'SergioTrendy',
-            color: 'black',
-            fontSize: 16,
-            textAlign: 'center',
-        },
-          
-        modalOverlay: {
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-          
-        modalContent: {
-            backgroundColor: '#ffffff',
-            padding: 20,
-            borderRadius: 20,
-            width: '85%',
-        },
-          
-        modalTitle: {
-            fontSize: 18,
-            fontFamily: 'PoppinsBold',
-            textAlign: 'center',
-            marginBottom: 15,
-        },
-          
-        iconGrid: {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-        },
-          
-        modalIcon: {
-            width: 60,
-            height: 60,
-            margin: 10,
-            resizeMode: 'contain',
-        },
-
-        moodCard: {
-            marginTop: 20,
-            padding: 16,
-            borderWidth: 2,
-            borderColor: '#7ec867',
-            borderRadius: 50,
-            backgroundColor: '#bfe9b2', 
-            alignItems: 'center',
-        },
-          
-        moodButton: {
-            alignItems: 'center',
-        },
-
-        cardContainer: {
-            backgroundColor: '#ffd1ff',
-            padding: 16,
-            marginVertical: 12,
-            width: '100%',
-            alignSelf: 'stretch',
-            borderColor: '#9b56a5',
-            borderWidth: 2,
-            borderRadius: 50,
-            alignItems: 'center',
-        },
-          
-        inputCard: {
-            backgroundColor: '#f3f3f3',
-            width: '100%',
-            borderRadius: 10,
-            padding: 10,
-            fontSize: 16,
-            marginTop: 8,
-            height: 80, 
-        },
-
-        todoItem: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 8,
-        },
-
-        todoRow: {
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            marginVertical: 4,
-        },
-          
-        todoBullet: {
-        marginRight: 8,
-        fontSize: 18,
-        color: '#2b0e42',
-        },
-          
-        todoText: {
-            flex: 1,
-            fontSize: 16,
-            color: '#2b0e42',
-        },
-          
-        todoInputRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginTop: 12,
-        },
-          
-        todoInput: {
+    container: {
         flex: 1,
-        backgroundColor: '#fce3ff',
-        padding: 10,
-        borderRadius: 10,
+        padding: 20,
+        marginBottom: 55,
+    },
+
+    title: {
+        marginTop: 35,
+        fontSize: 40,
+        fontFamily: 'SergioTrendy',
+        alignSelf: 'center',
+        color: '#2b0e42',
+    },
+
+    content: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    input: {
+        borderWidth: 1,
+        borderColor: '#aaa',
+        padding: 8,
+        marginBottom: 12,
+        borderRadius: 6
+    },
+
+    label: {
+        fontFamily: 'SergioTrendy',
+        fontSize: 20,
+        marginBottom: 4
+    },
+
+    waterIntakeCard: {
+        marginVertical: 12,
+        padding: 16,
+        borderWidth: 2,
+        borderColor: '#7caac8',
+        borderRadius: 50,
+        backgroundColor: 'rgb(214, 238, 251)', 
+        alignItems: 'center',
+    },
+
+    waterContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 10,
+    },
+    
+    waterButton: {
+        backgroundColor: '#6793c5',
+        borderRadius: 30,
+        padding: 12,
+        width: 60,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignContent: 'center',
+        marginHorizontal: 15,
+    },
+    
+    waterButtonText: {
+        color: 'white',
+        fontSize: 25,
+        alignContent: 'center',
+        fontFamily: 'Poppins',
+    },
+    
+    waterValue: {
+        fontSize: 18,
+        fontFamily: 'Poppins',
+        color: 'black',
+    },
+
+    timeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+        
+    timeSquareWakeup: {
+        flex: 1,
+        aspectRatio: 1, 
+        marginHorizontal: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fade70',
+        borderRadius: 35,
+        borderWidth: 2,
+        borderColor: '#f1b32d',
+        
+    },
+
+    timeSquareSleep: {
+        flex: 1,
+        aspectRatio: 1, 
+        marginHorizontal: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#89a0ec',
+        borderRadius: 35,
+        borderWidth: 2,
+        borderColor: '#4462c6',
+    },
+        
+    timeTextWakeup: {
+        paddingTop: 10,
+        fontSize: 18,
+        color: 'black',
+        fontFamily: 'PoppinsMedium',
+    },
+
+    timeTextSleep: {
+        paddingTop: 10,
+        fontSize: 18,
+        color: '#fff',
+        fontFamily: 'PoppinsMedium',
+    },
+        
+    timeLabelWakeup: {
+        fontSize: 18,
+        color: 'black',
+        fontFamily: 'SergioTrendy',
+        marginBottom: 4,
+        textAlign: 'center',
+        paddingBottom: 10,
+    },
+
+    timeLabelSleep: {
+        fontSize: 18,
+        color: '#fff',
+        fontFamily: 'SergioTrendy',
+        marginBottom: 4,
+        textAlign: 'center',
+        paddingBottom: 10,
+    },
+        
+    moodIcon: {
+        width: 40,
+        height: 40,
+        resizeMode: 'contain',
+        
+    },
+        
+    selectMoodText: {
+        fontFamily: 'SergioTrendy',
+        color: 'black',
         fontSize: 16,
-        marginRight: 8,
-        },
-          
-        emptyText: {
-            fontStyle: 'italic',
-            color: '#888',
-            marginTop: 8,
-        },
+        textAlign: 'center',
+    },
+        
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+        
+    modalContent: {
+        backgroundColor: '#ffffff',
+        padding: 20,
+        borderRadius: 20,
+        width: '85%',
+    },
+        
+    modalTitle: {
+        fontSize: 18,
+        fontFamily: 'PoppinsBold',
+        textAlign: 'center',
+        marginBottom: 15,
+    },
+        
+    iconGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+        
+    modalIcon: {
+        width: 60,
+        height: 60,
+        margin: 10,
+        resizeMode: 'contain',
+    },
 
-        positiveNoteCard: {
-            backgroundColor: '#ffd2dd',
-            padding: 16,
-            width: '100%',
-            alignSelf: 'stretch',
-            borderColor: '#cd657f',
-            borderWidth: 2,
-            borderRadius: 50,
-            alignItems: 'center',
-            marginBottom: 50,
-        },
+    moodCard: {
+        marginTop: 20,
+        padding: 16,
+        borderWidth: 2,
+        borderColor: '#7ec867',
+        borderRadius: 50,
+        backgroundColor: '#bfe9b2', 
+        alignItems: 'center',
+    },
+        
+    moodButton: {
+        alignItems: 'center',
+    },
 
-        inputCardNote: {
-            backgroundColor: '#ffd2dd',
-            width: '100%',
-            borderRadius: 10,
-            padding: 10,
-            fontSize: 16,
-            marginTop: 8,
-            height: 80, 
-        },
-          
+    cardContainer: {
+        backgroundColor: '#ffd1ff',
+        padding: 16,
+        marginVertical: 12,
+        width: '100%',
+        alignSelf: 'stretch',
+        borderColor: '#9b56a5',
+        borderWidth: 2,
+        borderRadius: 50,
+        alignItems: 'center',
+    },
+        
+    inputCard: {
+        backgroundColor: '#f3f3f3',
+        width: '100%',
+        borderRadius: 10,
+        padding: 10,
+        fontSize: 16,
+        marginTop: 8,
+        height: 80, 
+    },
+
+    todoItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+
+    todoRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginVertical: 4,
+    },
+        
+    todoBullet: {
+    marginRight: 8,
+    fontSize: 18,
+    color: '#2b0e42',
+    },
+        
+    todoText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#2b0e42',
+    },
+        
+    todoInputRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+        
+    todoInput: {
+    flex: 1,
+    backgroundColor: '#fce3ff',
+    padding: 10,
+    borderRadius: 10,
+    fontSize: 16,
+    marginRight: 8,
+    },
+        
+    emptyText: {
+        fontStyle: 'italic',
+        color: '#888',
+        marginTop: 8,
+    },
+
+    positiveNoteCard: {
+        backgroundColor: '#ffd2dd',
+        padding: 16,
+        width: '100%',
+        alignSelf: 'stretch',
+        borderColor: '#cd657f',
+        borderWidth: 2,
+        borderRadius: 50,
+        alignItems: 'center',
+        marginBottom: 50,
+    },
+
+    inputCardNote: {
+        backgroundColor: '#ffd2dd',
+        width: '100%',
+        borderRadius: 10,
+        padding: 10,
+        fontSize: 16,
+        marginTop: 8,
+        height: 80, 
+    },
+        
 });

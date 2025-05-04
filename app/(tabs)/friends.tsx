@@ -2,11 +2,12 @@ import NavigationBar from '@/components/NavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { BlurView } from 'expo-blur';
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ImageBackground, Modal, TextInput, TouchableOpacity, Button, Image, FlatList } from 'react-native';
 import { StyleSheet } from 'react-native';
 import api from "@/scripts/api";
+import { useNavigation } from '@react-navigation/native';
 
 export default function FriendsScreen() {
     const [modalVisible, setModalVisible] = useState(false);
@@ -14,6 +15,7 @@ export default function FriendsScreen() {
     const [user_code, setUserCode] = useState('');
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
     const [friends, setFriends] = useState<any[]>([]);
+    const navigation = useNavigation();
 
     const currentUserId = AsyncStorage.getItem('userId').then((value) => {
         if (value) {
@@ -163,8 +165,7 @@ export default function FriendsScreen() {
             }
         }
     };
-      
-    
+
     useEffect(() => {
         const loadFriends = async () => {
             const friendsData = await fetchFriends();
@@ -196,11 +197,16 @@ export default function FriendsScreen() {
                         data={friends}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => (
-                            <View style={styles.friendItem}>
-                                <Image style={styles.image} source={require('@/assets/images/friend.png')}/>
-                                <Text style={styles.friendName}>{item.name}</Text>
-                                <Text style={styles.friendEmail}>{item.email}</Text>
-                            </View>
+                            console.log('Friend id:', item.id),
+                            <Link href={{pathname: '/chat', params: { friendId: item.id, friendName: item.name }}} asChild>
+                                <TouchableOpacity
+                                    style={styles.friendItem}
+                                    onPress={() => router.replace('/chat')}>
+                                    <Image style={styles.image} source={require('@/assets/images/friend.png')} />
+                                    <Text style={styles.friendName}>{item.name}</Text>
+                                    <Text style={styles.friendEmail}>{item.email}</Text>
+                                </TouchableOpacity>
+                            </Link>
                         )}
                         ListEmptyComponent={
                             <Text style={{ fontFamily: 'Poppins', textAlign: 'center', marginTop: 20 }}>
