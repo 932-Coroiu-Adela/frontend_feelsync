@@ -18,9 +18,6 @@ export default function ChatScreen() {
 
   const { friendId, friendName } = useLocalSearchParams();
 
-  console.log('Friend ID:', friendId);
-  console.log('Friend Name:', friendName);
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const sendMessage = async (friendId: any, messageContent: any) => {
@@ -38,6 +35,23 @@ export default function ChatScreen() {
 
       if (response.status === 200) {
         console.log('Message sent successfully:', response.data);
+        console.log({
+          id: response.data.data.id,
+          sender_id: response.data.data.sender_id,
+          receiver_id: response.data.data.receiver_id,
+          content: response.data.data.content,
+          sent_at: response.data.data.sent_at,
+        });
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            id: response.data.data.id,
+            sender_id: response.data.data.sender_id,
+            receiver_id: response.data.data.receiver_id,
+            content: response.data.data.content,
+            sent_at: response.data.data.sent_at,
+          }
+        ])
       } else {
         console.error('Error sending message:', response.status, response.data);
       }
@@ -60,10 +74,7 @@ export default function ChatScreen() {
           headers: { Authorization: token }
         });
 
-      console.log('Did you get here?');  
-
       if (response.status === 200) {
-        console.log('Messages history:', response.data);
         return response.data.data;
       } else {
         console.error('Error fetching messages history:', response.status, response.data);
@@ -85,10 +96,12 @@ export default function ChatScreen() {
       }
   
       const url = new URL(`${api.defaults.baseURL}/sse/messages`);
+      url.searchParams.append("token", token);
+
       url.searchParams.append("friendId", friendId);
   
       const es = new EventSource(url.toString());
-      url.searchParams.append("token", token);
+      
   
       es.addEventListener('open', () => {
         console.log('SSE connection opened.');
@@ -97,7 +110,7 @@ export default function ChatScreen() {
       es.addEventListener('message', (event) => {
         const newMessage = JSON.parse(event.data || '');
         console.log('New message received:', newMessage);
-        setMessages((prevMessages) => [newMessage, ...prevMessages]);
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
       });
   
       es.addEventListener('error', (event) => {
@@ -115,12 +128,9 @@ export default function ChatScreen() {
   
   useEffect(() => {
     const fetchMessages = async () => {
-    console.log(friendId);
-      console.log('Fetching messages...');
       const history = await fetchMessagesHistory(friendId);
       if (history) {
         setMessages(history);
-        console.log('Messages fetched:', history);
       }
     };
 

@@ -1,8 +1,6 @@
-import { NavigationContainer } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import React from 'react';
 
-import Toast from 'react-native-toast-message';
 
 export default function TabLayout() {
 
@@ -18,7 +16,6 @@ export default function TabLayout() {
         <Stack.Screen name='profile' options={{ headerShown: false }}/>
         <Stack.Screen name='add_event' options={{ headerShown: false }}/>
         <Stack.Screen name='chat' options={{ headerShown: false }}/>
-        <Toast/>
       </Stack>
     
   );
