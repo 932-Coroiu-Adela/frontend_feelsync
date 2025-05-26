@@ -39,7 +39,6 @@ export default function FriendsScreen() {
             });
 
             if (response.data.success) {
-                console.log('Friends:', response.data.data);
                 return response.data.data;
             } else {
                 console.error('Error fetching friends:', response.data.message);
@@ -65,7 +64,6 @@ export default function FriendsScreen() {
             });
 
             if (response.data.success) {
-                console.log('Pending Requests:', response.data.data);
                 setPendingRequests(response.data.data);
             } else {
                 console.error('Error fetching pending requests:', response.data.message);
@@ -197,7 +195,6 @@ export default function FriendsScreen() {
                         data={friends}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => (
-                            console.log('Friend id:', item.id),
                             <Link href={{pathname: '/chat', params: { friendId: item.id, friendName: item.name }}} asChild>
                                 <TouchableOpacity
                                     style={styles.friendItem}
@@ -218,6 +215,10 @@ export default function FriendsScreen() {
                     <Modal transparent animationType="fade" visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
                         <View style={styles.modalOverlay}>
                             <View style={styles.modalContent}>
+                                <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                    <Image source={require('@/assets/images/cancel_button.png')} style={{ width: 38, height: 38 }} />
+                                </TouchableOpacity>
+
                                 <View style={styles.tabButtons}>
                                     <TouchableOpacity style={[styles.tabButton, activeTab === 'add' && styles.activeTab]}
                                         onPress={() => setActiveTab('add')}>
@@ -239,19 +240,15 @@ export default function FriendsScreen() {
                                             style={styles.input}
                                             autoCapitalize="none"
                                         />
-                                        <View style={styles.modalButtons}>
+                                        
                                         <TouchableOpacity style={styles.modalActionButton} onPress={() => {}}>
                                             <Text style={styles.modalActionText} onPress={() => sendFriendRequest(user_code)}>Send</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={[styles.modalActionButton, { backgroundColor: '#d44444' }]} onPress={() => setModalVisible(false)}>
-                                            <Text style={styles.modalActionText}>Cancel</Text>
-                                        </TouchableOpacity>
-                                        </View>
                                     </>
                                 ) : (
                                     <>
                                         {pendingRequests.length === 0 ? (
-                                            <Text style={{ marginTop: 10, fontFamily: 'Poppins' }}>No pending requests</Text>
+                                            <Text style={{ marginTop: 10, fontFamily: 'SergioTrendy' }}>No pending requests</Text>
                                         ) : (
                                             <FlatList
                                                 data={pendingRequests}
@@ -266,6 +263,8 @@ export default function FriendsScreen() {
                                                         </View>
                                                     </View>
                                                 )}
+
+                                                
                                             />
                                         )}
                                     </>
@@ -385,7 +384,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: '100%',
         justifyContent: 'space-around',
-        marginTop: 10,
+        marginTop: 40,
     },
 
     tabButton: {
@@ -401,7 +400,7 @@ const styles = StyleSheet.create({
     },
 
     tabText: {
-        fontFamily: 'Poppins',
+        fontFamily: 'PoppinsMedium',
         color: '#fff',
         textAlign: 'center',
         fontSize: 14,
@@ -429,19 +428,21 @@ const styles = StyleSheet.create({
     },
 
     modalActionButton: {
-        flex: 1,
+        width: '60%',
+        alignItems: 'center',
         backgroundColor: '#4d973aff',
         paddingVertical: 12,
         marginHorizontal: 5,
         borderRadius: 30,
-        alignItems: 'center',
         marginTop: 50,
+        borderWidth: 1,
+        borderColor: '#366b29',
     },
     
     modalActionText: {
         color: 'white',
         fontSize: 16,
-        fontFamily: 'PoppinsMedium',
+        fontFamily: 'SergioTrendy',
     },
 
     friendItem: {
@@ -456,19 +457,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 15,
-      },
+    },
       
     friendName: {
         fontSize: 16,
         fontFamily: 'PoppinsMedium',
         color: '#2b0e42',
-      },
+    },
       
     friendEmail: {
         fontSize: 13,
         fontFamily: 'Poppins',
         color: '#666',
-      },
+    },
 
     friendList: {
         width: '100%',
@@ -494,6 +495,15 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 185,
         borderBottomRightRadius: 185,
         zIndex: 0,
-      },
+    },
 
+    cancelButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
 });

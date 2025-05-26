@@ -37,7 +37,16 @@ export default function EventsScreen() {
     const onDateChange = (newDate: string) => {
         setEventDate(newDate);
     };
-    
+
+    const formatDateDMY = (dateStringYMD: string) => {
+      if (!dateStringYMD || !/^\d{4}-\d{2}-\d{2}$/.test(dateStringYMD)) {
+        console.warn('Invalid date format for formatDateToDDMMYYYY. Expected YYYY-MM-DD, got:', dateStringYMD);
+        return dateStringYMD; // Or return an empty string or throw an error
+      }
+      const [year, month, day] = dateStringYMD.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
     return (
         <ImageBackground source={require('@/assets/images/background1.jpg')} style={styles.background}>
           <BlurView intensity={130} style={styles.blur_overlay}>
@@ -50,17 +59,22 @@ export default function EventsScreen() {
             <Text style={styles.title}>Select Event Date</Text>
             <Calendar style={styles.calendar}
                 theme={{
-                    arrowColor: 'orange',
+                    arrowColor: 'pink',
                     monthTextColor: 'black',
                     todayTextColor: 'green',
                     textDayFontFamily: 'Poppins',
-                    textMonthFontFamily: 'PoppinsMedium',
-                    textDayHeaderFontFamily: 'Poppins',
+                    textMonthFontFamily: 'SergioTrendy',
+                    textDayHeaderFontFamily: 'SergioTrendy',
                     textDayFontSize: 12,
                     textMonthFontSize: 15,
                     textDayHeaderFontSize: 12,
                     textDayColor: 'black',
-              }}
+
+                }}
+                onDayPress={(day: any) => {
+                    const formattedDate = formatDateDMY(day.dateString);
+                    setEventDate(formattedDate);
+                }}
             />
 
             <View style={styles.eventsContainer}>

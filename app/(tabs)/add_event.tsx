@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert, Image } from "react-native";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
@@ -88,10 +88,14 @@ export default function AddEventScreen() {
     };
 
     return (
-        <ImageBackground source={require('@/assets/images/background1.jpg')} style={styles.background}>
-            <BlurView intensity={20} style={styles.blur_overlay}/>
+        <ImageBackground source={require('@/assets/images/background9.jpg')} style={styles.background}>
+            <BlurView intensity={140} style={styles.blur_overlay}/>
             <ScrollView style={styles.container} contentContainerStyle={styles.containerContent}>
+                <TouchableOpacity onPress={() => router.back()} style={{ position: "absolute", top: 10, left: 0 }}>
+                    <Image source={require('@/assets/images/back_button.png')} style={{ width: 40, height: 40 }} />
+                </TouchableOpacity>
                 <Text style={styles.title}>Creating a new event</Text>
+                
 
                 {/* date picker */}
                 <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
@@ -130,7 +134,7 @@ export default function AddEventScreen() {
                 />
 
                 <LinearGradient
-                          colors={['#ba94ac', '#361451']}
+                          colors={['#94a3ba', '#144451']}
                           style={styles.add_button}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}>
@@ -171,10 +175,11 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 30,
+        fontSize: 35,
+        textAlign: "center",
         marginTop: 15,
         fontFamily: "SergioTrendy",
-        color: "#2b0e42",
+        color: "#072e39",
         marginBottom: 50,
     },
 
@@ -185,7 +190,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#ddd",
         borderRadius: 15,
-        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        backgroundColor: "rgba(255, 255, 255, 0.897)",
     },
 
     inputText: {
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
 
     buttonText2: {
         fontSize: 18,
-        color: "#380760",
+        color: "#063b4a",
         fontFamily: "SergioTrendy",
         textAlign: "center",
     },
@@ -227,14 +232,14 @@ const styles = StyleSheet.create({
         padding: 10,
         marginTop: 100,
         borderWidth: 1,
-        borderColor: '#1b032f',
+        borderColor: '#144451',
     },
 
     cancel_button: {
         backgroundColor: "#f5f5f5c0",
         padding: 10,
         borderWidth: 1,
-        borderColor: '#3d190f',
+        borderColor: '#133f4b',
         borderRadius: 20,
         width: 250,
         marginTop: 20,

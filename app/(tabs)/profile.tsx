@@ -94,7 +94,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <TouchableOpacity style={styles.logout_button} onPress={handleLogout}>
-                        <Text style={styles.logout_text}>Log out</Text>
+                        <Text style={styles.logout_text}>LOG OUT</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     logout_text: {
         color: '#fff',
         fontSize: 18,
-        fontFamily: 'PoppinsMedium',
+        fontFamily: 'SergioTrendy',
         textAlign: 'center',
     },
 });

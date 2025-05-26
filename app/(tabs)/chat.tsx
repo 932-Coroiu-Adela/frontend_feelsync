@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/scripts/api';
-import { FlatList, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import EventSource from 'react-native-sse';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
 
 type Message = {
@@ -20,6 +20,7 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+
   const sendMessage = async (friendId: any, messageContent: any) => {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
@@ -89,30 +90,24 @@ export default function ChatScreen() {
   const startMessageStream = async (friendId: any) => {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
-  
+      
       if (!token) {
         console.error('No session token found');
         return;
       }
-  
+      
       const url = new URL(`${api.defaults.baseURL}/sse/messages`);
       url.searchParams.append("token", token);
-
       url.searchParams.append("friendId", friendId);
-  
       const es = new EventSource(url.toString());
-      
-  
       es.addEventListener('open', () => {
         console.log('SSE connection opened.');
       });
-  
       es.addEventListener('message', (event) => {
         const newMessage = JSON.parse(event.data || '');
         console.log('New message received:', newMessage);
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       });
-  
       es.addEventListener('error', (event) => {
         console.error('SSE connection error:', event.type, event);
         es.close();
@@ -167,17 +162,24 @@ export default function ChatScreen() {
 
     return (
       <View style={[styles.messageContainer, isSender ? styles.senderMessage : styles.friendMessage]}>
-        <Text style={styles.messageText}>{item.content}</Text>
-        <Text style={styles.timeText}>{formattedTime}</Text>
+        <Text style={isSender ? styles.senderMessageText : styles.friendMessageText}>
+          {item.content}
+        </Text>
+        <Text style={isSender ? styles.senderTimeText : styles.friendTimeText}>
+          {formattedTime}
+        </Text>
       </View>
     );
   };
 
   return (
     
-    <ImageBackground source={require('@/assets/images/chat_background2.jpg')} style={styles.background}>
-      <BlurView intensity={150} style={styles.blur_overlay}>
+    <ImageBackground source={require('@/assets/images/background7.jpg')} style={styles.background}>
+      <BlurView intensity={130} style={styles.blur_overlay}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)/friends')} style={styles.backButton}>
+          <Image source={require('@/assets/images/back_button.png')} style={{ width: 40, height: 40 }} />
+        </TouchableOpacity>
         <Text style={styles.friendName}>{friendName}</Text>
       </View>
 
@@ -196,7 +198,7 @@ export default function ChatScreen() {
           placeholder="Type a message"
         />
         <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Image source={require('@/assets/images/send_message.png')} style={{ width: 30, height: 30 }} />
         </TouchableOpacity>
       </View>
       </BlurView>
@@ -223,14 +225,16 @@ const styles = StyleSheet.create({
   },
 
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'white',
+    width: '100%',
   },
 
   friendName: {
     fontSize: 20,
-    paddingTop: 30,
+    paddingTop: 40,
     paddingBottom: 10,
     textAlign: 'center',
     width: '100%',
@@ -250,33 +254,49 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
     marginVertical: 5,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 25,
   },
   
   senderMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#c4def7',
+    backgroundColor: '#1859ff',
     borderWidth: 1,
     borderColor: '#a8bada',
+
   },
   
   friendMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#eaf8ff',
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#b0cddb',
   },
   
-  messageText: {
+  friendMessageText: {
     fontSize: 14,
     fontFamily: 'PoppinsMedium',
+    color: 'black',
+  },
+
+  senderMessageText: {
+    fontSize: 14,
+    fontFamily: 'PoppinsMedium',
+    color: 'white',
+    padding: 1,
   },
   
-  timeText: {
+  friendTimeText: {
     fontSize: 12,
     fontFamily: 'Poppins',
     textAlign: 'right',
     color: '#888',
+  },
+
+  senderTimeText: {
+    fontSize: 12,
+    fontFamily: 'Poppins',
+    textAlign: 'right',
+    color: '#d2d1d1',
   },
   
   inputContainer: {
@@ -291,7 +311,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 10,
     margin: 10,
@@ -299,16 +319,30 @@ const styles = StyleSheet.create({
   },
   
   sendButton: {
-    backgroundColor: '#356ff7',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: 'white',
+    width: 55,
+    height: 55,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    padding: 15,
     margin: 10,
     
   },
   
   sendButtonText: {
     color: '#fff',
-    fontFamily: 'PoppinsMedium',
+    fontFamily: 'SergioTrendy',
+    fontSize: 16,
   },
+
+  backButton: {
+    position: 'absolute',
+    zIndex: 1,
+    top: 30,
+    left: 10,
+  },
+
 });

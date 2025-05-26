@@ -117,12 +117,16 @@ export default function LoginScreen() {
                         style={styles.login_button}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}>
-                        {/* <Link href='/' asChild> */}
-                            <TouchableOpacity style={styles.button_wrapper} onPress={handleLogin}>
-                                <Text style={styles.button_text_login}>LOGIN</Text>
-                            </TouchableOpacity>
-                        {/* </Link> */}
-                    </LinearGradient>    
+                        
+                        <TouchableOpacity style={styles.button_wrapper} onPress={handleLogin}>
+                            <Text style={styles.button_text_login}>LOGIN</Text>
+                        </TouchableOpacity>
+                    </LinearGradient>
+
+                    {/* go back button */}
+                    <TouchableOpacity style={styles.go_back_button} onPress={() => {router.replace('/')}}>
+                        <Text style={styles.button_text_goback}>GO BACK</Text>
+                    </TouchableOpacity>    
                 </ScrollView>
             </ImageBackground>
         </KeyboardAvoidingView>
@@ -217,6 +221,22 @@ const styles = StyleSheet.create({
 
     button_text_login: {
         color: 'white',
+        textAlign: 'center',
+        fontFamily: 'SergioTrendy',
+    },
+
+    go_back_button: {
+        borderRadius: 20,
+        width: 250,
+        padding: 10,
+        marginTop: 20,
+        borderWidth: 1,
+        borderColor: '#572036d3',
+        backgroundColor: '#fab7d24f',
+    },
+
+    button_text_goback: {
+        color: '#731f41',
         textAlign: 'center',
         fontFamily: 'SergioTrendy',
     },

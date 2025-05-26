@@ -140,7 +140,13 @@ export default function SignupScreen() {
                                 <Text style={styles.button_text_signup}>SIGN UP</Text>
                             </TouchableOpacity>
                         </Link>
-                    </LinearGradient>    
+                    </LinearGradient>
+
+                    {/* go back button */}
+                    <TouchableOpacity style={styles.go_back_button} onPress={() => {router.replace('/')}}>
+                        <Text style={styles.button_text_goback}>GO BACK</Text>
+                    </TouchableOpacity>
+                    
                 </ScrollView>
             </ImageBackground>
         </KeyboardAvoidingView>
@@ -229,13 +235,29 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         width: 260,
         padding: 10,
-        marginTop: 120,
+        marginTop: 80,
         borderWidth: 1,
         borderColor: '#06093c',
     },
 
+    go_back_button: {
+        borderRadius: 20,
+        width: 260,
+        padding: 10,
+        marginTop: 20,
+        borderWidth: 1,
+        borderColor: '#06093c',
+        backgroundColor: '#b7e2fa92',
+    },
+
     button_text_signup: {
         color: 'white',
+        textAlign: 'center',
+        fontFamily: 'SergioTrendy',
+    },
+
+    button_text_goback: {
+        color: '#0c105d',
         textAlign: 'center',
         fontFamily: 'SergioTrendy',
     },
