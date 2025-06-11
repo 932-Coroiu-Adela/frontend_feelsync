@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {router} from 'expo-router';
 
 const api = axios.create({
-    baseURL: 'http://192.168.0.167:5056',
+    baseURL: 'feel-sync-backend-app-eyfxgjdsd4f8echf.westeurope-01.azurewebsites.net',
 });
 
 api.interceptors.response.use(
