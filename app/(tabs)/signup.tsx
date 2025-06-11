@@ -19,7 +19,6 @@ export default function SignupScreen() {
         } 
         else 
         {
-
             // checking the email format
             const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
             if (!emailRegex.test(email)) {
@@ -53,9 +52,9 @@ export default function SignupScreen() {
             } 
             catch (error) 
             {
-                console.error("Error creating the user: ", error);
+                console.log("Error creating the user: ", error);
 
-                if (axios.isAxiosError(error)) 
+                if (axios.isAxiosError(error) && error.status === 500) 
                 {
                     Alert.alert("Error!", error.response?.data.message || "An error occurred. Please try again.");
                 }
@@ -135,11 +134,9 @@ export default function SignupScreen() {
                         style={styles.signup_button}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}>
-                        <Link href='/home' asChild>
-                            <TouchableOpacity style={styles.button_wrapper} onPress={handleSignup}>
-                                <Text style={styles.button_text_signup}>SIGN UP</Text>
-                            </TouchableOpacity>
-                        </Link>
+                        <TouchableOpacity style={styles.button_wrapper} onPress={handleSignup}>
+                            <Text style={styles.button_text_signup}>SIGN UP</Text>
+                        </TouchableOpacity>
                     </LinearGradient>
 
                     {/* go back button */}

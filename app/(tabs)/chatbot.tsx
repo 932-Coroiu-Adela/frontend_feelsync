@@ -4,6 +4,7 @@ import { BlurView } from 'expo-blur';
 import NavigationBar from '@/components/NavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/scripts/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ChatMessage {
     id: string;
@@ -18,6 +19,8 @@ export default function ChatbotScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const flatListRef = useRef<FlatList<ChatMessage>>(null);
 
+    const insets = useSafeAreaInsets();
+
     useEffect(() => {
         setMessages([
             {
@@ -29,11 +32,17 @@ export default function ChatbotScreen() {
         ]);
     }, []);
     
-    useEffect(() => {
-        if (messages.length > 0) {
-            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    // useEffect(() => {
+    //     if (messages.length > 0) {
+    //         setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+    //     }
+    // }, [messages]);
+
+    const scrollToBottom = () => {
+        if (flatListRef.current) {
+            flatListRef.current.scrollToEnd({ animated: true });
         }
-    }, [messages]);
+    };
 
     const handleSendMessage = async () => {
         if (userInput.trim() === '') {
@@ -156,9 +165,8 @@ export default function ChatbotScreen() {
                             renderItem={renderMessageItem}
                             keyExtractor={(item) => item.id}
                             style={styles.chatArea}
-                            contentContainerStyle={styles.chatContentContainer}
-                            onContentSizeChange={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100)}
-                            onLayout={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100)}
+                            contentContainerStyle={[styles.chatContentContainer, { paddingBottom: insets.bottom + 120 }]}
+                            onContentSizeChange={scrollToBottom}
                         />
                         
                         <View style={styles.inputSection}>

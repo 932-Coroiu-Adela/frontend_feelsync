@@ -31,7 +31,7 @@ export function useUserData() {
     } 
     catch (err: any) 
     {
-      console.error("Error fetching user data:", err);
+      console.log("Error fetching user data:", err);
       setError(err.response?.data.message || "An error occurred.");
     } 
     finally 

@@ -4,10 +4,12 @@ import axios from 'axios';
 import { BlurView } from 'expo-blur';
 import { Link, router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { View, Text, ImageBackground, Modal, TextInput, TouchableOpacity, Button, Image, FlatList } from 'react-native';
+import { View, Text, ImageBackground, Modal, TextInput, TouchableOpacity, Button, Image, FlatList, SafeAreaView } from 'react-native';
 import { StyleSheet } from 'react-native';
 import api from "@/scripts/api";
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 export default function FriendsScreen() {
     const [modalVisible, setModalVisible] = useState(false);
@@ -16,6 +18,8 @@ export default function FriendsScreen() {
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
     const [friends, setFriends] = useState<any[]>([]);
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
+    const NAV_BAR_HEIGHT = 75;
 
     const currentUserId = AsyncStorage.getItem('userId').then((value) => {
         if (value) {
@@ -149,12 +153,15 @@ export default function FriendsScreen() {
           if (data.success) {
             console.log('Friend request sent successfully:', data.message);
             alert('Friend request sent!');
-          } else {
+            setUserCode('');
+          } 
+    
+        else{
             console.error('Error sending friend request:', data.message);
             alert(data.message || 'Failed to send friend request');
           }
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response && error.response.status === 400) {
+            if (axios.isAxiosError(error) && error.response) {
                 console.log('Friendship already exists:', error.response.data.message);
                 alert(error.response.data.message || 'Friendship already exists.');
             } else {
@@ -181,7 +188,7 @@ export default function FriendsScreen() {
     return (
         <ImageBackground source={require('@/assets/images/background6.jpg')} style={styles.background}>
             <BlurView intensity={150} style={styles.blur_overlay}>
-                <View style={styles.container}>
+                <SafeAreaView style={styles.container}>
                     <View style={styles.titleContainer}>
                         <View style={styles.circleBackground} />
                         <Text style={styles.title}>Friends</Text>
@@ -189,9 +196,9 @@ export default function FriendsScreen() {
                     <TouchableOpacity style={styles.notificationsButton} onPress={() => setModalVisible(true)}>
                         <Image style={styles.image} source={require('@/assets/images/notifications.png')}/>
                     </TouchableOpacity>
-                    <NavigationBar/>
-
+                    
                     <FlatList style={styles.friendList}
+                        contentContainerStyle = {{ paddingBottom: insets.bottom + NAV_BAR_HEIGHT }}
                         data={friends}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => (
@@ -271,8 +278,9 @@ export default function FriendsScreen() {
                                 )}
                             </View>
                         </View>
-                    </Modal>    
-                </View>
+                    </Modal>
+                    <NavigationBar/>    
+                </SafeAreaView>
             </BlurView>
         </ImageBackground>
     )

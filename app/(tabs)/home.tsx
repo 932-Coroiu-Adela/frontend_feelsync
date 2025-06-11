@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useUserData } from "@/hooks/useUserData";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Text, View, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image, Platform, Modal, FlatList } from "react-native";
+import { ActivityIndicator, Text, View, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image, Platform, Modal, FlatList, Dimensions } from "react-native";
 import api from "@/scripts/api";
 import NavigationBar from "@/components/NavigationBar";
 import { StyleSheet } from "react-native";
@@ -10,6 +10,21 @@ import React from "react";
 import { BlurView } from "expo-blur";    
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import { BarChart } from "react-native-chart-kit";
+import { WaterIntakeCalendar } from "@/components/WaterIntakeCalendar";
+import { MoodsCalendar } from "@/components/MoodsCalendar";
+
+type LogType = {
+    id: number;
+    log_date: string;
+    mood: string;
+    positive_note: string;
+    sleep_time: string;
+    todo_list: string;
+    user_id: number;
+    wakeup_time: string;
+    water_intake: number;
+};
 
 export default function HomeScreen() {
 
@@ -33,10 +48,13 @@ export default function HomeScreen() {
     const [newTodo, setNewTodo] = useState('');
     const [todoItems, setTodoItems] = useState<string[]>([]);
 
+    const [statsModalVisible, setStatsModalVisible] = useState(false);
+    const [allLogsData, setAllLogsData] = useState<LogType[] | null>(null);
+    const [statsLoading, setStatsLoading] = useState(false);
+
     useEffect(() => {
         logAllStorage();
         fetchTodaysLog();
-
     }, []);
       
 
@@ -58,7 +76,7 @@ export default function HomeScreen() {
         try {
             const token = await AsyncStorage.getItem('sessionToken');
             if (!token) {
-                console.error('No session token found');
+                console.log('Fetch todays log - No session token found');
                 return;
             }
 
@@ -70,8 +88,13 @@ export default function HomeScreen() {
 
             if (response.data && response.data.data && response.data.data.length > 0) {
                 const fetchedLog = response.data.data?.[0];
+                let dateToSet = fetchedLog.log_date;
+                if (dateToSet && typeof dateToSet === 'string' && dateToSet.includes('T')) {
+                    const dateObj = new Date(dateToSet);
+                    dateToSet = dateObj.toLocaleDateString('en-CA');
+                }
                 setLog({
-                    log_date: fetchedLog.log_date || new Date().toLocaleDateString('en-CA'),
+                    log_date: dateToSet || new Date().toLocaleDateString('en-CA'),
                     mood: fetchedLog.mood || '',
                     todo_list: fetchedLog.todo_list || '[]',
                     water_intake: fetchedLog.water_intake || 0,
@@ -84,6 +107,7 @@ export default function HomeScreen() {
                 
             } else {
                 console.log('No log found for today.');
+                setLog(prevLog => ({ ...prevLog, log_date: new Date().toLocaleDateString('en-CA') }));
             }
         }
         catch (error) {
@@ -94,20 +118,22 @@ export default function HomeScreen() {
     const handleUpdateField = async (field: string, value: string | number) => {
         const updatedLog = {...log, [field]: value};
         setLog(updatedLog);
+        console.log("Sending updated log to server:", updatedLog);
+        await sendLogToServer(updatedLog);
     }
 
     const sendLogToServer = async (logData: typeof log) => {
         try {
             const token = await AsyncStorage.getItem('sessionToken');
             if (!token) {
-                console.error('No session token found');
+                console.log('Send log to server - No session token found');
                 return;
             }
 
-            console.log('Sending log to server:', logData);
+            console.log('Preparing to send log to server:', logData);
 
             const validatedLogData = {
-                log_date: logData.log_date || new Date().toLocaleDateString('en-CA'),
+                log_date: logData.log_date,
                 mood: logData.mood || 'Not specified',
                 todo_list: logData.todo_list || '[]',  
                 water_intake: logData.water_intake || 0,
@@ -126,28 +152,38 @@ export default function HomeScreen() {
             
         } catch (error) {
             console.log('Error sending log to server:', error);
-
-            if (axios.isAxiosError(error) && error.response?.status === 400) {
-                //
-                // alert("Please fill all the fields before saving the log.");
-                // Redirect to login screen or show a message
-            }
         }
     }
 
-   
+    const fetchAllLogs = async () => {
+        try {
+            const token = await AsyncStorage.getItem('sessionToken');
+            if (!token) {
+                console.log('Fetch all logs - No session token found');
+                return;
+            }
 
-    if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
+            const response = await api.get('/logs/all', {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.data && response.data.data) {
+                setAllLogsData(response.data.data);
+                console.log('All logs:', response.data.data);
+            } else {
+                console.log('No logs found.');
+            }
+        } catch (error) {
+            console.log('Error fetching all logs:', error);
+        }
     }
 
-    if (error) {
-        return (
-            <View>
-                <Text>Error: {error}</Text>
-            </View>
-        );
-    }
+    const openStatsModal = () => {
+        setStatsModalVisible(true);
+        fetchAllLogs();
+    };
 
     const addTodoItem = () => {
         if (!newTodo.trim()) return;
@@ -155,6 +191,128 @@ export default function HomeScreen() {
         setTodoItems(updatedTodos);
         setNewTodo('');
         handleUpdateField('todo_list', JSON.stringify(updatedTodos));
+    };
+
+    const monthlyMoodsChartData = useMemo(() => {
+        console.log("Calculating monthly moods data...");
+        
+        if (!allLogsData || allLogsData.length === 0) {
+            return null;
+        }
+        
+        const today = new Date();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        
+        const monthlyLogs = allLogsData.filter(log => {
+            const logDate = new Date(log.log_date);
+            return logDate.getMonth() === month && logDate.getFullYear() === year;
+        });
+        
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const moods = Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const dateForComparison = new Date(year, month, day).toLocaleDateString('en-CA');
+            const logForDay = monthlyLogs.find(log => {
+                const logDateOnly = new Date(log.log_date).toLocaleDateString('en-CA');
+                return logDateOnly === dateForComparison;
+            });
+
+            return logForDay ? logForDay.mood : '';
+        });
+
+        console.log("Mood values for the month:", moods);
+        return moods;
+    }, [allLogsData]);
+
+    const monthlyWaterIntakeChartData = useMemo(() => {
+        console.log("Calculating monthly water intake data...");
+        
+        if (!allLogsData || allLogsData.length === 0) {
+            return null;
+        }
+        
+        const today = new Date();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        
+        const monthlyLogs = allLogsData.filter(log => {
+            const logDate = new Date(log.log_date);
+            return logDate.getMonth() === month && logDate.getFullYear() === year;
+        });
+        
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const waterIntakeValues = Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const dateForComparison = new Date(year, month, day).toLocaleDateString('en-CA');
+            const logForDay = monthlyLogs.find(log => {
+                const logDateOnly = new Date(log.log_date).toLocaleDateString('en-CA');
+                return logDateOnly === dateForComparison;
+            });
+
+            return logForDay ? logForDay.water_intake || 0 : 0;
+        });
+
+        console.log("Water intake values for the month:", waterIntakeValues);
+        return waterIntakeValues;
+    }, [allLogsData]);
+
+    const monthlySleepChartData = useMemo(() => {
+        console.log("Calculating monthly sleep chart data...");
+        console.log(allLogsData);
+        if (!allLogsData || allLogsData.length === 0) {
+            return null; 
+        }
+
+        const month = (new Date()).getMonth();
+        const year = (new Date).getFullYear();
+
+        const monthlyLogs = allLogsData.filter(log => {
+            const logDate = new Date(log.log_date);
+            console.log("Month: ", logDate.getMonth(), "Year: ", logDate.getFullYear());
+            return logDate.getMonth() === month && logDate.getFullYear() === year;
+        });
+        
+        const sleepCounts = monthlyLogs.reduce((acc, log) => {
+            if (log.sleep_time && log.wakeup_time) {
+                console.log("Processing log:", log);
+                const sleep = new Date(`1970-01-01T${log.sleep_time}`);
+                const wake = new Date(`1970-01-01T${log.wakeup_time}`);
+                let hours = (wake.getTime() - sleep.getTime()) / 3600000;
+                console.log("Sleep time:", log.sleep_time, "Wakeup time:", log.wakeup_time, "Hours:", hours);
+                if (hours < 0) hours += 24;
+                const rounded = Math.round(hours);
+                acc[rounded] = (acc[rounded] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<number, number>);
+        
+        const sortedSleepHours = Object.keys(sleepCounts).map(Number).sort((a, b) => a - b);
+        if (sortedSleepHours.length === 0) {
+            return null;
+        }
+
+        const sleepValues = sortedSleepHours.map(hour => sleepCounts[hour]);
+        
+        return {
+            labels: sortedSleepHours.map(String),
+            datasets: [{ data: sleepValues }],
+            segments: Math.max(1, ...sleepValues) 
+        };
+    }, [allLogsData]);
+
+    const chartConfig = {
+        backgroundGradientFrom: "#a9d7ff",
+        backgroundGradientTo: "#ffc57e",
+        
+        decimalPlaces: 0,
+        color: () => "#00000021",
+        labelColor: () => "#000000",
+        style: {
+            borderRadius: 16,
+        },
+        fillShadowGradient: "#4b4134",
+        fillShadowGradientOpacity: 1,
     };
 
     const getMoodIcon = (mood: string) => {
@@ -174,6 +332,20 @@ export default function HomeScreen() {
         };
         return iconMap[mood] || null;
     };
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+
+    if (error) {
+        return (
+            <View>
+                <Text>Error: {error}</Text>
+            </View>
+        );
+    }
+
+    
       
     return (
         <ImageBackground source={require('@/assets/images/background2.jpg')} style={styles.background}>
@@ -342,7 +514,64 @@ export default function HomeScreen() {
                         />
                     </View>
 
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={statsModalVisible}
+                        onRequestClose={() => setStatsModalVisible(false)}
+                        >
+                        <View style={styles.modalOverlayStats}>
+                            <View style={styles.statsModalContent}>
+                                <Text style={styles.modalTitle}>Monthly stats 📊</Text>
+                                <ScrollView contentContainerStyle={styles.chartScrollView}>
+                                    {statsLoading ? (
+                                        <ActivityIndicator size="large" color="#2b0e42" />
+                                    ) : (
+                                        <>
+                                            <Text style={styles.chartTitle}>Sleep duration trends 💤</Text>
+                                            {monthlySleepChartData ? (
+                                                <BarChart 
+                                                data={monthlySleepChartData} 
+                                                width={Dimensions.get('window').width * 0.8} 
+                                                height={220} yAxisLabel="" 
+                                                yAxisSuffix=" days" 
+                                                chartConfig={chartConfig} 
+                                                style={styles.chartStyle} 
+                                                segments={monthlySleepChartData.segments} 
+                                                fromZero={true} 
+                                                xAxisLabel="h"/>
+                                            ) : <Text style={styles.noDataText}>No sleep data for this month.</Text>}
+
+                                            <Text style={styles.chartTitle}>Daily water intake 💧</Text>
+                                                {monthlyWaterIntakeChartData ? (
+                                                    <WaterIntakeCalendar waterIntakeArray={monthlyWaterIntakeChartData} />
+                                                ) : <Text style={styles.noDataText}>No water intake data for this month.</Text>}
+                                            
+                                            <View style={{ height: 20 }} />
+
+                                            <Text style={styles.chartTitle}>Monthly mood overview 😊</Text>
+                                                {monthlyMoodsChartData ? (
+                                                    <MoodsCalendar moodsArray={monthlyMoodsChartData} />
+                                                ) : <Text style={styles.noDataText}>No mood data for this month.</Text>}
+                                            
+                                            <View style={{ height: 20 }} />
+
+                                        </>
+
+                                    )}
+                                </ScrollView>
+
+                                <TouchableOpacity style={styles.closeButton} onPress={() => setStatsModalVisible(false)}>
+                                    <Text style={styles.closeButtonText}>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
+
                 </ScrollView>
+                <TouchableOpacity style={styles.statsButton} onPress={openStatsModal}>
+                    <Image source={require('@/assets/images/statistics.png')} style={{ width: 38, height: 38}} />
+                </TouchableOpacity> 
                 <NavigationBar/>
             </BlurView>
         </ImageBackground>
@@ -372,20 +601,6 @@ const styles = StyleSheet.create({
         fontFamily: 'SergioTrendy',
         alignSelf: 'center',
         color: '#2b0e42',
-    },
-
-    content: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    input: {
-        borderWidth: 1,
-        borderColor: '#aaa',
-        padding: 8,
-        marginBottom: 12,
-        borderRadius: 6
     },
 
     label: {
@@ -524,13 +739,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 20,
         width: '85%',
-    },
-        
-    modalTitle: {
-        fontSize: 18,
-        fontFamily: 'PoppinsBold',
-        textAlign: 'center',
-        marginBottom: 15,
+        maxHeight: '80%',
     },
         
     iconGrid: {
@@ -570,23 +779,6 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderRadius: 50,
         alignItems: 'center',
-    },
-        
-    inputCard: {
-        backgroundColor: '#f3f3f3',
-        width: '100%',
-        borderRadius: 10,
-        padding: 10,
-        fontSize: 16,
-        marginTop: 8,
-        height: 80, 
-    },
-
-    todoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 8,
     },
 
     todoRow: {
@@ -649,5 +841,89 @@ const styles = StyleSheet.create({
         marginTop: 8,
         height: 80, 
     },
+
+    statsButton: {
+        position: 'absolute',
+        bottom: 70,
+        right: 10,
+        width: 60,
+        height: 60,
+        borderRadius: 30, 
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#898989',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.55,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+
+    modalOverlayStats: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    statsModalContent: {
+        backgroundColor: '#fffbfbf4',
+        padding: 20,
+        borderRadius: 20,
+        width: '95%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+        maxHeight: '95%',
+    },
+
+    modalTitle: {
+        fontSize: 22,
+        fontFamily: 'SergioTrendy', 
+        marginBottom: 15,
+        flexShrink: 0,
+    },
+
+    closeButton: {
+        backgroundColor: '#9249cd',
+        paddingVertical: 10,
+        paddingHorizontal: 30,
+        borderRadius: 20,
+        flexShrink: 0,
+    },
+
+    closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontFamily: 'SergioTrendy', 
+    },
         
+    noDataText: { 
+        textAlign: 'center', 
+        paddingVertical: 50, 
+        fontFamily: 'Poppins', 
+        color: '#666' 
+    },
+
+    chartScrollView: { 
+        width: '100%' 
+    },
+
+    chartTitle: { 
+        fontFamily: 'SergioTrendy', 
+        fontSize: 16, 
+        marginTop: 15, 
+        marginBottom: 5, 
+        textAlign: 'center' 
+    },
+
+    chartStyle: { 
+        marginVertical: 8, 
+        borderRadius: 16 
+    },
 });

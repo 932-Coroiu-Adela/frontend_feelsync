@@ -25,7 +25,7 @@ export default function ChatScreen() {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
       if (!token) {
-        console.error('No session token found');
+        console.log('No session token found');
         return;
       }
 

@@ -60,7 +60,7 @@ export default function LoginScreen() {
         }
         catch (error)
         {
-            console.error("Error logging in the user: ", error);
+            console.log("Error logging in the user: ", error);
 
             if (axios.isAxiosError(error))
             {
