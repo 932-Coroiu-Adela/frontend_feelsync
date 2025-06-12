@@ -21,6 +21,8 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
+  const flatListRef = React.useRef<FlatList<Message>>(null);
+
   const sendMessage = async (friendId: any, messageContent: any) => {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
@@ -29,9 +31,9 @@ export default function ChatScreen() {
         return;
       }
 
-      const response = await api.post('/messages/send', {receiver_id: friendId, message: messageContent}, 
+      const response = await api.post('/messages/send', { receiver_id: friendId, message: messageContent },
         {
-          headers: {Authorization: token}
+          headers: { Authorization: token }
         });
 
       if (response.status === 200) {
@@ -64,7 +66,7 @@ export default function ChatScreen() {
   const fetchMessagesHistory = async (friendId: any) => {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
-      
+
       if (!token) {
         console.error('No session token found');
         return;
@@ -90,12 +92,12 @@ export default function ChatScreen() {
   const startMessageStream = async (friendId: any) => {
     try {
       const token = await AsyncStorage.getItem('sessionToken');
-      
+
       if (!token) {
         console.error('No session token found');
         return;
       }
-      
+
       const url = new URL(`${api.defaults.baseURL}/sse/messages`);
       url.searchParams.append("token", token);
       url.searchParams.append("friendId", friendId);
@@ -112,15 +114,15 @@ export default function ChatScreen() {
         console.error('SSE connection error:', event.type, event);
         es.close();
       });
-  
+
       return es;
-  
+
     } catch (error) {
       console.error('Error starting message stream:', error);
       return null;
     }
   };
-  
+
   useEffect(() => {
     const fetchMessages = async () => {
       const history = await fetchMessagesHistory(friendId);
@@ -141,6 +143,13 @@ export default function ChatScreen() {
       });
     };
   }, [friendId]);
+
+  useEffect(() => {
+    if (flatListRef.current && messages.length > 0) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
 
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
@@ -173,34 +182,35 @@ export default function ChatScreen() {
   };
 
   return (
-    
+
     <ImageBackground source={require('@/assets/images/background7.jpg')} style={styles.background}>
       <BlurView intensity={130} style={styles.blur_overlay}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace('/(tabs)/friends')} style={styles.backButton}>
-          <Image source={require('@/assets/images/back_button.png')} style={{ width: 40, height: 40 }} />
-        </TouchableOpacity>
-        <Text style={styles.friendName}>{friendName}</Text>
-      </View>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.replace('/(tabs)/friends')} style={styles.backButton}>
+            <Image source={require('@/assets/images/back_button.png')} style={{ width: 40, height: 40 }} />
+          </TouchableOpacity>
+          <Text style={styles.friendName}>{friendName}</Text>
+        </View>
 
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.messagesContainer}
-      />
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={newMessage}
-          onChangeText={setNewMessage}
-          placeholder="Type a message"
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.messagesContainer}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Image source={require('@/assets/images/send_message.png')} style={{ width: 30, height: 30 }} />
-        </TouchableOpacity>
-      </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Type a message"
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+            <Image source={require('@/assets/images/send_message.png')} style={{ width: 30, height: 30 }} />
+          </TouchableOpacity>
+        </View>
       </BlurView>
     </ImageBackground>
   );
@@ -209,8 +219,8 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   background: {
-    flex: 1, 
-    resizeMode: 'cover',  
+    flex: 1,
+    resizeMode: 'cover',
     justifyContent: 'center'
   },
 
@@ -256,7 +266,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 25,
   },
-  
+
   senderMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#1859ff',
@@ -264,14 +274,14 @@ const styles = StyleSheet.create({
     borderColor: '#a8bada',
 
   },
-  
+
   friendMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#eaf8ff',
     borderWidth: 1,
     borderColor: '#b0cddb',
   },
-  
+
   friendMessageText: {
     fontSize: 14,
     fontFamily: 'PoppinsMedium',
@@ -284,7 +294,7 @@ const styles = StyleSheet.create({
     color: 'white',
     padding: 1,
   },
-  
+
   friendTimeText: {
     fontSize: 12,
     fontFamily: 'Poppins',
@@ -298,7 +308,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: '#d2d1d1',
   },
-  
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -306,7 +316,7 @@ const styles = StyleSheet.create({
     borderColor: '#cccccc',
     paddingTop: 10,
   },
-  
+
   input: {
     flex: 1,
     borderWidth: 1,
@@ -317,7 +327,7 @@ const styles = StyleSheet.create({
     margin: 10,
     fontFamily: 'Poppins',
   },
-  
+
   sendButton: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -329,9 +339,9 @@ const styles = StyleSheet.create({
     borderRadius: '50%',
     padding: 15,
     margin: 10,
-    
+
   },
-  
+
   sendButtonText: {
     color: '#fff',
     fontFamily: 'SergioTrendy',

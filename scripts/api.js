@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {router} from 'expo-router';
 
 const api = axios.create({
-    baseURL: 'feel-sync-backend-app-eyfxgjdsd4f8echf.westeurope-01.azurewebsites.net',
+    baseURL: 'https://feel-sync-backend-app-eyfxgjdsd4f8echf.westeurope-01.azurewebsites.net',
 });
 
 api.interceptors.response.use(
@@ -15,6 +15,7 @@ api.interceptors.response.use(
 
             router.replace('/login');
         }
+        console.log('API Error:', error.response ? error.response.data : error.message);
         return Promise.reject(error);
     }
 );
