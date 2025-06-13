@@ -4,7 +4,7 @@ import axios from "axios";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Alert, Image } from "react-native";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,7 +14,16 @@ import api from "@/scripts/api";
 export default function AddEventScreen() {
     const router = useRouter();
 
-    const [eventDate, setEventDate] = useState(new Date());
+    const { initialDate } = useLocalSearchParams();
+
+    const getInitialDate = () => {
+        if (initialDate) {
+            return moment(initialDate, "YYYY-MM-DD").toDate();
+        }
+        return new Date();
+    }
+
+    const [eventDate, setEventDate] = useState(getInitialDate());
     const [eventTime, setEventTime] = useState(new Date());
     const [description, setDescription] = useState("");
     

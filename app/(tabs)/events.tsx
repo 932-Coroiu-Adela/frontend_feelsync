@@ -1,6 +1,6 @@
 import NavigationBar from '@/components/NavigationBar';
 import { BlurView } from 'expo-blur';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ImageBackground, ActivityIndicator, FlatList, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { useEvents } from '@/hooks/useUserEvents';
@@ -23,6 +23,8 @@ export default function EventsScreen() {
     const router = useRouter();
     const [eventDate, setEventDate] = React.useState(getCurrentDate());
     const { events, loading, error } = useEvents(eventDate);
+    const [selectedDateString, setSelectedDateString] = useState(moment().format('YYYY-MM-DD'));
+
 
     useEffect(() => {
         if (error) {
@@ -53,7 +55,7 @@ export default function EventsScreen() {
           <View style={styles.container}>
             <NavigationBar />
 
-            <TouchableOpacity style={styles.addButton} onPress={() => router.push('/add_event')}>
+            <TouchableOpacity style={styles.addButton} onPress={() => router.push({pathname: '/add_event', params: {initialDate: selectedDateString}})}>
               <Image style={styles.image} source={require('@/assets/images/add_button.png')}/>
             </TouchableOpacity>
             <Text style={styles.title}>Select Event Date</Text>
@@ -74,6 +76,12 @@ export default function EventsScreen() {
                 onDayPress={(day: any) => {
                     const formattedDate = formatDateDMY(day.dateString);
                     setEventDate(formattedDate);
+                    setSelectedDateString(day.dateString);
+                }}
+                markedDates={{
+                    [selectedDateString]: {
+                        selected: true,
+                        selectedColor: 'green',}
                 }}
             />
 

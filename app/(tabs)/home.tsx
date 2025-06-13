@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useUserData } from "@/hooks/useUserData";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Text, View, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image, Platform, Modal, FlatList, Dimensions } from "react-native";
+import { ActivityIndicator, Text, View, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image, Platform, Modal, FlatList, Dimensions, Alert } from "react-native";
 import api from "@/scripts/api";
 import NavigationBar from "@/components/NavigationBar";
 import { StyleSheet } from "react-native";
@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BarChart } from "react-native-chart-kit";
 import { WaterIntakeCalendar } from "@/components/WaterIntakeCalendar";
 import { MoodsCalendar } from "@/components/MoodsCalendar";
+import { useNavigation } from "expo-router";
 
 type LogType = {
     id: number;
@@ -26,19 +27,22 @@ type LogType = {
     water_intake: number;
 };
 
+const initialLogState = {
+    log_date: new Date().toLocaleDateString('en-CA'),
+    mood: '',
+    todo_list: '[]',
+    water_intake: 0,
+    wakeup_time: '',
+    sleep_time: '',
+    positive_note: ''
+}
+
 export default function HomeScreen() {
 
     const { userData, loading, error } = useUserData(); 
     console.log(AsyncStorage.getItem("userData"));
-    const [log, setLog] = useState({
-        log_date: new Date().toLocaleDateString('en-CA'),
-        mood: '',
-        todo_list: '[]',
-        water_intake: 0,
-        wakeup_time: '',
-        sleep_time: '',
-        positive_note: ''
-    });
+    const [log, setLog] = useState(initialLogState);
+    const [originalLog, setOriginalLog] = useState(initialLogState);
 
     const [showWakePicker, setShowWakePicker] = useState(false);
     const [showSleepPicker, setShowSleepPicker] = useState(false);
@@ -52,11 +56,55 @@ export default function HomeScreen() {
     const [allLogsData, setAllLogsData] = useState<LogType[] | null>(null);
     const [statsLoading, setStatsLoading] = useState(false);
 
+    const navigation = useNavigation();
+      
+    const isLogComplete = useMemo(() => {
+        return !!log.mood && log.water_intake > 0 && !!log.wakeup_time && !!log.sleep_time;
+    }, [log]);
+
     useEffect(() => {
         logAllStorage();
         fetchTodaysLog();
     }, []);
-      
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+            if (isLogComplete) {
+                return;
+            }
+
+            let alertTitle = 'Almost there';
+            let alertMessage = 'You have unsaved changes. Are you sure you want to leave?😥';
+
+            if(!log.mood) {
+                alertTitle = 'Hold on!';
+                alertMessage = 'You haven\'t selected your mood yet.😊 Are you sure you want to leave?';
+            }
+            else if(log.water_intake === 0) {
+                alertTitle = 'Just a moment!';
+                alertMessage = 'How about drinking some water before you go?🥤';
+            } else if (!log.wakeup_time || !log.sleep_time) {
+                alertTitle = 'Almost there!';
+                alertMessage = 'How about logging when you woke up and went to sleep?💤';
+            }
+
+            e.preventDefault();
+
+            Alert.alert(alertTitle,
+                alertMessage,
+                [
+                    { text: "Stay", style: 'cancel', onPress: () => {} },
+                    {
+                        text: 'Leave anyway',
+                        style: 'destructive',
+                        onPress: () => navigation.dispatch(e.data.action),
+                    },
+                ]
+            );
+        });
+
+        return unsubscribe;
+    }, [navigation, isLogComplete, log]);
 
     const logAllStorage = async () => {
         try {
@@ -93,21 +141,25 @@ export default function HomeScreen() {
                     const dateObj = new Date(dateToSet);
                     dateToSet = dateObj.toLocaleDateString('en-CA');
                 }
-                setLog({
-                    log_date: dateToSet || new Date().toLocaleDateString('en-CA'),
+                const newLogState = {
+                    log_date: new Date(fetchedLog.log_date).toLocaleDateString('en-CA'),
                     mood: fetchedLog.mood || '',
                     todo_list: fetchedLog.todo_list || '[]',
                     water_intake: fetchedLog.water_intake || 0,
-                    wakeup_time: fetchedLog.wakeup_time || 'Not specified',
-                    sleep_time: fetchedLog.sleep_time || 'Not specified',
-                    positive_note: fetchedLog.positive_note || 'No positive note for today'
-                });
+                    wakeup_time: fetchedLog.wakeup_time || '',
+                    sleep_time: fetchedLog.sleep_time || '',
+                    positive_note: fetchedLog.positive_note || ''
+                };
+                setLog(newLogState);
+                setOriginalLog(newLogState);
                 const parsed = JSON.parse(fetchedLog.todo_list || '[]');
                 setTodoItems(parsed);
                 
             } else {
                 console.log('No log found for today.');
-                setLog(prevLog => ({ ...prevLog, log_date: new Date().toLocaleDateString('en-CA') }));
+                //setLog(prevLog => ({ ...prevLog, log_date: new Date().toLocaleDateString('en-CA') }));
+                setLog(initialLogState);
+                setOriginalLog(initialLogState);
             }
         }
         catch (error) {
@@ -345,8 +397,6 @@ export default function HomeScreen() {
         );
     }
 
-    
-      
     return (
         <ImageBackground source={require('@/assets/images/background2.jpg')} style={styles.background}>
             <BlurView intensity={130} style={styles.blur_overlay}>
@@ -380,6 +430,9 @@ export default function HomeScreen() {
                     <Modal visible={moodModalVisible} transparent animationType="fade">
                         <View style={styles.modalOverlay}>
                             <View style={styles.modalContent}>
+                                <TouchableOpacity style={{alignSelf: 'flex-end'}} onPress={() => setMoodModalVisible(false)}>
+                                    <Ionicons name="close-circle" size={32} color="black" />
+                                </TouchableOpacity>
                                 <Text style={styles.selectMoodText}>Choose your mood</Text>
                                 <View style={styles.iconGrid}>
                                     {[

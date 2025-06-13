@@ -28,6 +28,18 @@ export default function FriendsScreen() {
         return null;
     });
 
+    const isTodayBirthday = (dateString: string) => {
+        if (!dateString) return false;
+
+        const [day, month] = dateString.split('/');
+        const today = new Date();
+        const currentDay = today.getDate();
+        const currentMonth = today.getMonth() + 1; 
+
+        return parseInt(day, 10) === currentDay && parseInt(month, 10) === currentMonth;
+    }
+
+
     const fetchFriends = async () => {
         try {
             const token = await AsyncStorage.getItem('sessionToken');
@@ -43,6 +55,7 @@ export default function FriendsScreen() {
             });
 
             if (response.data.success) {
+                console.log('Friends fetched successfully:', response.data.data);
                 return response.data.data;
             } else {
                 console.error('Error fetching friends:', response.data.message);
@@ -208,6 +221,9 @@ export default function FriendsScreen() {
                                     onPress={() => router.replace('/chat')}>
                                     <Image style={styles.image} source={require('@/assets/images/friend.png')} />
                                     <Text style={styles.friendName}>{item.name}</Text>
+                                    {isTodayBirthday(item.birthdate) && (
+                                        <Image source={require('@/assets/images/birthday-cake.png')} style={{ width: 20, height: 20 }} />
+                                    )}
                                     <Text style={styles.friendEmail}>{item.email}</Text>
                                 </TouchableOpacity>
                             </Link>
