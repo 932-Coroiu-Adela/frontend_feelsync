@@ -5,12 +5,23 @@ import { Link, router } from "expo-router";
 import { useState } from "react";
 import axios, {AxiosError} from "axios";
 import api from "@/scripts/api";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import moment from "moment";
 
 export default function SignupScreen() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [birthdate, setBirthdate] = useState('');
+    const [birthdate, setBirthdate] = useState<Date | null>(null);
+
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if(selectedDate) {
+            setBirthdate(selectedDate);
+        }
+    }
 
     const handleSignup = async () => {
         if (!name || !email || !password || !birthdate) {
@@ -26,12 +37,7 @@ export default function SignupScreen() {
                 return;
             }
 
-            // checking the birthdate format
-            const birtdateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-            if (!birtdateRegex.test(birthdate)) {
-                Alert.alert('Invalid birthdate format');
-                return;
-            }
+            const formattedBirthdate = moment(birthdate).format('DD/MM/YYYY');
 
             try 
             {
@@ -40,7 +46,7 @@ export default function SignupScreen() {
                         name,
                         email,
                         password,
-                        birthdate,
+                        birthdate: formattedBirthdate,
                     }
                 );
 
@@ -65,6 +71,7 @@ export default function SignupScreen() {
             }
         }
     }
+
 
 
     return (
@@ -116,17 +123,22 @@ export default function SignupScreen() {
                             />
                     </View>
 
-                    {/* birth date */}
-                    <View style={styles.input_container}>
+                    {/* birthdate input */}
+                    <TouchableOpacity style={styles.input_container} onPress={() => setShowDatePicker(true)}>
                         <Image source={require('@/assets/images/calendar.png')} style={styles.image} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder='Birth date: DD/MM/YYYY'
-                            placeholderTextColor='black'
-                            value={birthdate}
-                            onChangeText={setBirthdate}
-                            />
-                    </View>
+                        <Text style={styles.dateText}>
+                            {birthdate ? moment(birthdate).format("DD / MM / YYYY") : "Select your birthdate"}
+                        </Text>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                        <DateTimePicker 
+                            testID="dateTimePicker"
+                            value={birthdate || new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}/>
+                    )}
+                    
                     
                     {/* sign up button */}
                     <LinearGradient
@@ -257,5 +269,15 @@ const styles = StyleSheet.create({
         color: '#0c105d',
         textAlign: 'center',
         fontFamily: 'SergioTrendy',
+    },
+
+    dateText: {
+        fontSize: 16,
+        color: 'black',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        fontFamily: 'Poppins',
+        width: 300,
+        textAlign: 'center',
     },
 });
